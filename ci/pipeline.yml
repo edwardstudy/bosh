@@ -1179,6 +1179,7 @@ resources:
   - name: brats-terraform
     type: terraform
     source:
+      delete_on_failure: true
       storage:
         bucket: bosh-ci-terraform
         bucket_path: brats-ci/

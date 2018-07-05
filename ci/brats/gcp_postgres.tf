@@ -25,15 +25,15 @@ resource "google_sql_database_instance" "postgres-master" {
   }
 }
 
-resource "google_sql_database" "postgres" {
-  instance  = "${google_sql_database_instance.postgres-master.name}"
-  name      = "${var.gcp_postgres_databasename}"
-}
-
 resource "google_sql_user" "postgres" {
   instance = "${google_sql_database_instance.postgres-master.name}"
   name     = "${var.gcp_postgres_username}"
   password = "${var.gcp_postgres_password}"
+}
+
+resource "google_sql_database" "postgres" {
+  instance  = "${google_sql_database_instance.postgres-master.name}"
+  name      = "${var.gcp_postgres_databasename}"
 }
 
 output "gcp_postgres_endpoint" {

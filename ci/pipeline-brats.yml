@@ -1,0 +1,85 @@
+---
+groups:
+  - name: bosh
+    jobs:
+      - terraform-cycle
+
+jobs:
+  - name: terraform-cycle
+    serial: true
+    plan:
+    - aggregate:
+      - get: bosh-src
+    - do:
+      - put: brats-terraform
+        attempts: 2
+        params:
+          env_name: brats-wip-faster
+          terraform_source: bosh-src/ci/brats
+          vars:
+            rds_mysql_username: ((brats-rds-mysql-external-db-user))
+            rds_mysql_password: ((brats-rds-mysql-external-db-password))
+            rds_mysql_databasename: ((brats-rds-mysql-external-db-name))
+            rds_postgres_username: ((brats-rds-postgres-external-db-user))
+            rds_postgres_password: ((brats-rds-postgres-external-db-password))
+            rds_postgres_databasename: ((brats-rds-postgres-external-db-name))
+            aws_access_key_id: ((bosh-ci-database-terraform-rds-aws-access-key-id))
+            aws_secret_access_key: ((bosh-ci-database-terraform-rds-aws-secret-access-key))
+            gcp_mysql_username: ((brats-gcp-mysql-external-db-user))
+            gcp_mysql_password: ((brats-gcp-mysql-external-db-password))
+            gcp_mysql_databasename: ((brats-gcp-mysql-external-db-name))
+            gcp_postgres_username: ((brats-gcp-postgres-external-db-user))
+            gcp_postgres_password: ((brats-gcp-postgres-external-db-password))
+            gcp_postgres_databasename: ((brats-gcp-postgres-external-db-name))
+          env:
+            GOOGLE_CREDENTIALS: ((bosh-ci-database-terraform-google-credentials))
+      ensure:
+        put: brats-terraform
+        params:
+          env_name: brats-wip-faster
+          terraform_source: bosh-src/ci/brats
+          action: destroy
+          vars:
+            rds_mysql_username: ((brats-rds-mysql-external-db-user))
+            rds_mysql_password: ((brats-rds-mysql-external-db-password))
+            rds_mysql_databasename: ((brats-rds-mysql-external-db-name))
+            rds_postgres_username: ((brats-rds-postgres-external-db-user))
+            rds_postgres_password: ((brats-rds-postgres-external-db-password))
+            rds_postgres_databasename: ((brats-rds-postgres-external-db-name))
+            aws_access_key_id: ((bosh-ci-database-terraform-rds-aws-access-key-id))
+            aws_secret_access_key: ((bosh-ci-database-terraform-rds-aws-secret-access-key))
+            gcp_mysql_username: ((brats-gcp-mysql-external-db-user))
+            gcp_mysql_password: ((brats-gcp-mysql-external-db-password))
+            gcp_mysql_databasename: ((brats-gcp-mysql-external-db-name))
+            gcp_postgres_username: ((brats-gcp-postgres-external-db-user))
+            gcp_postgres_password: ((brats-gcp-postgres-external-db-password))
+            gcp_postgres_databasename: ((brats-gcp-postgres-external-db-name))
+          env:
+            GOOGLE_CREDENTIALS: ((bosh-ci-database-terraform-google-credentials))
+          action: destroy
+          get_params: { action: destroy }
+
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
+
+resources:
+  - name: bosh-src
+    type: git
+    source:
+      uri: ((bosh_src_url))
+      branch: wip-faster-brats
+      private_key: ((github_deployment_key))
+
+  - name: brats-terraform
+    type: terraform
+    source:
+      delete_on_failure: true
+      storage:
+        bucket: bosh-ci-terraform
+        bucket_path: brats-ci/
+        region_name: us-west-1
+        access_key_id: ((bosh-ci-database-terraform-aws-access-key-id))
+        secret_access_key: ((bosh-ci-database-terraform-aws-secret-access-key))
